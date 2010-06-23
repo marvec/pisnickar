@@ -1,0 +1,5 @@
+body { background-color: #FFFFCC; }
+a { color: green; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.edit { float: right; }
+.chord { vertical-align: super; color: green; font-size: 90%; }
