@@ -51,6 +51,11 @@
             <artifactId>cobra</artifactId>
             <version>0.98.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>2.1.7</version>
+        </dependency>
     </dependencies>
     <description>It is a Java based GUI application that can maintain various sources of song texts enriched with guitar chords. It offers easy-to-use editor, search for texts, file based as well as on-line sources, printing to PDF and more.</description>
 </project>
