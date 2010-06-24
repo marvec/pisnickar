@@ -1,6 +1,11 @@
 package org.marvec.pisnickar.songs;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +20,36 @@ public class SourceManager implements Serializable {
     private static final long serialVersionUID = -4908343081463897897L;
     public static final String SOURCE_MANAGER_CONFIG = "sourceManager";
 
-    List<SongSource> sources = new LinkedList<SongSource>();
+    private List<SongSource> sources = new LinkedList<SongSource>();
+
+    public List<SongSource> getSources() {
+        return sources;
+    }
+
+    public void store(File directory) throws IOException {
+       File f = new File(directory, SOURCE_MANAGER_CONFIG);
+       ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
+       try {
+          oos.writeObject(this);
+       } finally {
+          oos.close();
+       }
+    }
+
+    public static SourceManager load(File directory) throws IOException {
+       File f = new File(directory, SOURCE_MANAGER_CONFIG);
+       ObjectInputStream ois = null;
+       try {
+          ois = new ObjectInputStream(new FileInputStream(f));
+          return (SourceManager) ois.readObject();
+       } catch (Exception e) {
+          return null;
+       } finally {
+          if (ois != null) {
+              ois.close();
+          }
+       }
+    }
 
     public void addSource(SongSource s) {
         if (sources.indexOf(s) == -1) {
