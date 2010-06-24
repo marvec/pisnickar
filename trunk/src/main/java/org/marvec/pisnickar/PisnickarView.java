@@ -43,7 +43,7 @@ public class PisnickarView extends FrameView {
         initComponents();
 
         try {
-            manager = (SourceManager) getApplication().getContext().getLocalStorage().load(SourceManager.SOURCE_MANAGER_CONFIG);
+            manager = SourceManager.load(getApplication().getContext().getLocalStorage().getDirectory());
         } catch (IOException e) {
             manager = null;
         }
@@ -144,9 +144,11 @@ public class PisnickarView extends FrameView {
         newMenuItem = new javax.swing.JMenuItem();
         searchMenuItem = new javax.swing.JMenuItem();
         saveMenuItem = new javax.swing.JMenuItem();
+        printMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JSeparator();
         sourcesMenuItem = new javax.swing.JMenuItem();
         transferMenuItem = new javax.swing.JMenuItem();
+        jSeparator4 = new javax.swing.JPopupMenu.Separator();
         setupMenuItem = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JSeparator();
         javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
@@ -182,11 +184,11 @@ public class PisnickarView extends FrameView {
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 639, Short.MAX_VALUE)
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
         );
 
         menuBar.setName("menuBar"); // NOI18N
@@ -196,6 +198,7 @@ public class PisnickarView extends FrameView {
         fileMenu.setName("fileMenu"); // NOI18N
 
         newMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        newMenuItem.setMnemonic('n');
         newMenuItem.setText(resourceMap.getString("newMenuItem.text")); // NOI18N
         newMenuItem.setName("newMenuItem"); // NOI18N
         newMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -206,6 +209,7 @@ public class PisnickarView extends FrameView {
         fileMenu.add(newMenuItem);
 
         searchMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_MASK));
+        searchMenuItem.setMnemonic('h');
         searchMenuItem.setText(resourceMap.getString("searchMenuItem.text")); // NOI18N
         searchMenuItem.setName("searchMenuItem"); // NOI18N
         searchMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -216,6 +220,7 @@ public class PisnickarView extends FrameView {
         fileMenu.add(searchMenuItem);
 
         saveMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        saveMenuItem.setMnemonic('u');
         saveMenuItem.setText(resourceMap.getString("saveMenuItem.text")); // NOI18N
         saveMenuItem.setName("saveMenuItem"); // NOI18N
         saveMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -225,9 +230,16 @@ public class PisnickarView extends FrameView {
         });
         fileMenu.add(saveMenuItem);
 
+        printMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
+        printMenuItem.setMnemonic('t');
+        printMenuItem.setText(resourceMap.getString("printMenuItem.text")); // NOI18N
+        printMenuItem.setName("printMenuItem"); // NOI18N
+        fileMenu.add(printMenuItem);
+
         jSeparator1.setName("jSeparator1"); // NOI18N
         fileMenu.add(jSeparator1);
 
+        sourcesMenuItem.setMnemonic('z');
         sourcesMenuItem.setText(resourceMap.getString("sourcesMenuItem.text")); // NOI18N
         sourcesMenuItem.setName("sourcesMenuItem"); // NOI18N
         sourcesMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -237,10 +249,15 @@ public class PisnickarView extends FrameView {
         });
         fileMenu.add(sourcesMenuItem);
 
+        transferMenuItem.setMnemonic('p');
         transferMenuItem.setText(resourceMap.getString("transferMenuItem.text")); // NOI18N
         transferMenuItem.setName("transferMenuItem"); // NOI18N
         fileMenu.add(transferMenuItem);
 
+        jSeparator4.setName("jSeparator4"); // NOI18N
+        fileMenu.add(jSeparator4);
+
+        setupMenuItem.setMnemonic('t');
         setupMenuItem.setText(resourceMap.getString("setupMenuItem.text")); // NOI18N
         setupMenuItem.setName("setupMenuItem"); // NOI18N
         fileMenu.add(setupMenuItem);
@@ -250,6 +267,7 @@ public class PisnickarView extends FrameView {
 
         javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(org.marvec.pisnickar.PisnickarApp.class).getContext().getActionMap(PisnickarView.class, this);
         exitMenuItem.setAction(actionMap.get("quit")); // NOI18N
+        exitMenuItem.setMnemonic('k');
         exitMenuItem.setText(resourceMap.getString("exitMenuItem.text")); // NOI18N
         exitMenuItem.setToolTipText(resourceMap.getString("exitMenuItem.toolTipText")); // NOI18N
         exitMenuItem.setName("exitMenuItem"); // NOI18N
@@ -295,6 +313,7 @@ public class PisnickarView extends FrameView {
         helpMenu.setText(resourceMap.getString("helpMenu.text")); // NOI18N
         helpMenu.setName("helpMenu"); // NOI18N
 
+        welcomeMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
         welcomeMenuItem.setText(resourceMap.getString("welcomeMenuItem.text")); // NOI18N
         welcomeMenuItem.setName("welcomeMenuItem"); // NOI18N
         welcomeMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -328,11 +347,11 @@ public class PisnickarView extends FrameView {
         statusPanel.setLayout(statusPanelLayout);
         statusPanelLayout.setHorizontalGroup(
             statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(statusPanelSeparator, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(statusPanelSeparator, javax.swing.GroupLayout.DEFAULT_SIZE, 639, Short.MAX_VALUE)
             .addGroup(statusPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(statusMessageLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 216, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 455, Short.MAX_VALUE)
                 .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusAnimationLabel)
@@ -421,12 +440,14 @@ public class PisnickarView extends FrameView {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem nextTabMenuItem;
     private javax.swing.JMenuItem prevTabMenuItem;
+    private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem searchMenuItem;
