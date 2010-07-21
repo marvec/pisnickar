@@ -3,6 +3,7 @@ package org.marvec.pisnickar.tabs;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -23,6 +24,7 @@ public class TabManipulator {
     HtmlListener listener;
     TabFactory tabFactory;
     SourceManager manager;
+    JFrame frame;
 
     private int newDocumentCounter = 1;
 
@@ -33,7 +35,8 @@ public class TabManipulator {
     public static final String SEARCH_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "search/";
     public static final String SOURCES_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "sources/";
 
-    public TabManipulator(JTabbedPane tabbedPane, SourceManager manager) {
+    public TabManipulator(JFrame frame, JTabbedPane tabbedPane, SourceManager manager) {
+        this.frame = frame;
         this.tabbedPane = tabbedPane;
         this.manager = manager;
     }
@@ -93,6 +96,10 @@ public class TabManipulator {
                 throw new IllegalStateException("Do not know how to handle URL: " + url);
             }
         }
+    }
+
+    public JFrame getParentFrame() {
+        return frame;
     }
 
     private void openSongUrl(String url) {

@@ -41,7 +41,14 @@ public class SourceManager implements Serializable {
        ObjectInputStream ois = null;
        try {
           ois = new ObjectInputStream(new FileInputStream(f));
-          return (SourceManager) ois.readObject();
+          SourceManager man = (SourceManager) ois.readObject();
+          for(SongSource src: man.getSources()) {
+              if (src instanceof FileSongSource && !(src instanceof DummySongSource)) {
+                  ((FileSongSource) src).init();
+              }
+          }
+
+          return man;
        } catch (Exception e) {
           return null;
        } finally {
@@ -65,6 +72,11 @@ public class SourceManager implements Serializable {
         }
 
         return null;
+    }
+
+    public void removeSource(SongSource src) throws IOException {
+        src.close();
+        sources.remove(src);
     }
 
     public LinkedList<SearchResult> search(String queue) {

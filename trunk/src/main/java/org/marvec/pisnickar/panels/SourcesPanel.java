@@ -12,6 +12,8 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import org.jdesktop.application.Application;
+import org.marvec.pisnickar.dialogs.NewSourceDialog;
+import org.marvec.pisnickar.songs.FileSongSource;
 import org.marvec.pisnickar.songs.SongSource;
 import org.marvec.pisnickar.songs.SourceManager;
 import org.marvec.pisnickar.tabs.TabManipulator;
@@ -68,9 +70,9 @@ public class SourcesPanel extends javax.swing.JPanel {
         saveCloseButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         sourcesTable = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        removejButton = new javax.swing.JButton();
+        editButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
 
         setName("Form"); // NOI18N
 
@@ -105,30 +107,45 @@ public class SourcesPanel extends javax.swing.JPanel {
         sourcesTable.setName("sourcesTable"); // NOI18N
         jScrollPane1.setViewportView(sourcesTable);
 
-        jButton1.setMnemonic('o');
-        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
-        jButton1.setName("jButton1"); // NOI18N
+        removejButton.setMnemonic('o');
+        removejButton.setText(resourceMap.getString("removejButton.text")); // NOI18N
+        removejButton.setName("removejButton"); // NOI18N
+        removejButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removejButtonActionPerformed(evt);
+            }
+        });
 
-        jButton2.setMnemonic('r');
-        jButton2.setText(resourceMap.getString("jButton2.text")); // NOI18N
-        jButton2.setName("jButton2"); // NOI18N
+        editButton.setMnemonic('r');
+        editButton.setText(resourceMap.getString("editButton.text")); // NOI18N
+        editButton.setName("editButton"); // NOI18N
+        editButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editButtonActionPerformed(evt);
+            }
+        });
 
-        jButton3.setMnemonic('p');
-        jButton3.setText(resourceMap.getString("jButton3.text")); // NOI18N
-        jButton3.setName("jButton3"); // NOI18N
+        addButton.setMnemonic('p');
+        addButton.setText(resourceMap.getString("addButton.text")); // NOI18N
+        addButton.setName("addButton"); // NOI18N
+        addButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 450, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(43, Short.MAX_VALUE)
-                .addComponent(jButton3)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(addButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2)
+                .addComponent(editButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
+                .addComponent(removejButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(saveCloseButton)
                 .addContainerGap())
@@ -139,10 +156,10 @@ public class SourcesPanel extends javax.swing.JPanel {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
+                    .addComponent(removejButton)
+                    .addComponent(editButton)
                     .addComponent(saveCloseButton)
-                    .addComponent(jButton3))
+                    .addComponent(addButton))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -157,12 +174,64 @@ public class SourcesPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_saveCloseButtonActionPerformed
 
+    private void removejButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removejButtonActionPerformed
+        String[] sources = source.getSourceList();
+
+        int sel = sourcesTable.getSelectedRow();
+        int result = JOptionPane.showConfirmDialog(this, "Skutečně chcete odebrat zdroj " + sources[sel] + "?",
+                "Odebrání zdroje", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            try {
+                source.removeSource(source.getSourceById(sources[sel]));
+            } catch (IOException ex) {
+                Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "Cannot remove song source.", ex);
+                JOptionPane.showMessageDialog(this, "Odebíraný zdroj se nepodařilo uzavřít. Odebírání bylo zrušeno.",
+                        "Chyba při odebírání", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        fillInTable();
+    }//GEN-LAST:event_removejButtonActionPerformed
+
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        NewSourceDialog dlg = new NewSourceDialog(manipulator.getParentFrame(), true);
+        dlg.setLocationRelativeTo(manipulator.getParentFrame());
+        dlg.setVisible(true);
+
+        if (dlg.getResult() == NewSourceDialog.APPROVED_FILE) {
+            try {
+                SongSource s = new FileSongSource();
+                s.open(null, dlg.getSelectedFile());
+                source.addSource(s);
+            } catch (IOException ex) {
+                Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "File source " +
+                        dlg.getSelectedFile() + " cannot be used.", ex);
+                JOptionPane.showMessageDialog(this, "Nepodařilo se otevřít ani vytvořit souborový zdroj.",
+                        "Chybný zdroj", JOptionPane.ERROR_MESSAGE);
+            }
+        } else if (dlg.getResult() != NewSourceDialog.CANCELED) {
+            Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "Invalid source has been requested for creation.");
+            JOptionPane.showMessageDialog(this, "Byl vybrán neznámý typ zdroje.",
+                    "Neznámý zdroj", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        fillInTable();
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        String[] sources = source.getSourceList();
+        int sel = sourcesTable.getSelectedRow();
+        SongSource s = source.getSourceById(sources[sel]);
+        s.setEnabled(!s.isEnabled());
+        fillInTable();
+    }//GEN-LAST:event_editButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton addButton;
+    private javax.swing.JButton editButton;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton removejButton;
     private javax.swing.JButton saveCloseButton;
     private javax.swing.JTable sourcesTable;
     // End of variables declaration//GEN-END:variables

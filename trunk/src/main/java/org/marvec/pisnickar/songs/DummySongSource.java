@@ -35,7 +35,7 @@ public class DummySongSource extends FileSongSource {
 
     @Override
     public String getType() {
-        return "Dummy";
+        return "Výběr";
     }
 
     @Override

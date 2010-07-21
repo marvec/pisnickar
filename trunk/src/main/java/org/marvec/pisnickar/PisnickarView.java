@@ -59,7 +59,7 @@ public class PisnickarView extends FrameView {
             }
         }
 
-        tabManipulator = new TabManipulator(jTabbedPane1, manager);
+        tabManipulator = new TabManipulator(getFrame(), jTabbedPane1, manager);
         htmlListener = new GlobalHtmlListener(tabManipulator);
         tabManipulator.openUrl(TabManipulator.WELCOME_URL);
 

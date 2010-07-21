@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -63,16 +63,28 @@ public class FileSongSource implements SongSource, Serializable {
         }
         this.id = id;
 
-        ObjectInputStream ois = new ObjectInputStream(new ZipInputStream(new FileInputStream(dataFile)));
-        try {
-            songs = (LinkedHashMap<String, Song>) ois.readObject();
-        } catch (ClassNotFoundException cnfe) {
-            throw new IOException("Nelze načíst databázi textů ze souboru " + dataFile, cnfe);
-        }
-        ois.close();
+        init();
 
         lastId = determineLastId();
         dirty = false;
+    }
+
+    protected void init() throws IOException {
+        if (dataFile.exists()) {
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(dataFile));
+            zis.getNextEntry();
+            ObjectInputStream ois = new ObjectInputStream(zis);
+            try {
+                songs = (LinkedHashMap<String, Song>) ois.readObject();
+            } catch (ClassNotFoundException cnfe) {
+                throw new IOException("Nelze načíst databázi textů ze souboru " + dataFile, cnfe);
+            }
+            zis.closeEntry();
+            ois.close();
+            zis.close();
+        } else {
+            flush();
+        }
     }
 
     public void close() throws IOException {
@@ -83,11 +95,16 @@ public class FileSongSource implements SongSource, Serializable {
 
     public void flush() throws IOException {
         File tmpDataFile = new File(dataFile + "2");
-        ObjectOutputStream oos = new ObjectOutputStream(new ZipOutputStream(new FileOutputStream(tmpDataFile)));
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tmpDataFile));
+        zos.putNextEntry(new ZipEntry("songs"));
+        ObjectOutputStream oos = new ObjectOutputStream(zos);
         oos.writeObject(songs);
+        zos.closeEntry();
         oos.flush();
         oos.close();
-        if (!dataFile.delete()) {
+        zos.flush();
+        zos.close();
+        if (dataFile.exists() && !dataFile.delete()) {
             throw new IOException("Nelze smazat původní soubor s databází. Nová data byla uložena do souboru " + tmpDataFile);
         }
         if (!tmpDataFile.renameTo(dataFile)) {
@@ -125,7 +142,7 @@ public class FileSongSource implements SongSource, Serializable {
     }
 
     public boolean isReadOnly() {
-        return false;
+        return dataFile == null ? false : !dataFile.canWrite();
     }
 
     public List<SearchResult> search(String query) {
@@ -154,4 +171,23 @@ public class FileSongSource implements SongSource, Serializable {
         return id;
     }
 
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.writeObject(id);
+        out.writeObject(dataFile);
+        out.writeBoolean(enabled);
+        out.writeLong(lastId);
+        if (this instanceof DummySongSource) {
+            out.writeObject(songs);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        id = (String) in.readObject();
+        dataFile = (File) in.readObject();
+        enabled = in.readBoolean();
+        lastId = in.readLong();
+        if (this instanceof DummySongSource) {
+            songs = (HashMap<String, Song>) in.readObject();
+        }
+    }
 }
