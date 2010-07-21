@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import org.jdesktop.application.Application;
 import org.marvec.pisnickar.dialogs.NewSourceDialog;
+import org.marvec.pisnickar.songs.CannotRemoveException;
 import org.marvec.pisnickar.songs.FileSongSource;
 import org.marvec.pisnickar.songs.SongSource;
 import org.marvec.pisnickar.songs.SourceManager;
@@ -186,6 +187,9 @@ public class SourcesPanel extends javax.swing.JPanel {
             } catch (IOException ex) {
                 Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "Cannot remove song source.", ex);
                 JOptionPane.showMessageDialog(this, "Odebíraný zdroj se nepodařilo uzavřít. Odebírání bylo zrušeno.",
+                        "Chyba při odebírání", JOptionPane.ERROR_MESSAGE);
+            } catch (CannotRemoveException cre) {
+                JOptionPane.showMessageDialog(this, "Zdroj pro ukládání výběru nelze odebrat.",
                         "Chyba při odebírání", JOptionPane.ERROR_MESSAGE);
             }
         }

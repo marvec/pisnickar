@@ -13,7 +13,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import org.lobobrowser.html.UserAgentContext;
+import org.lobobrowser.html.gui.HtmlPanel;
 import org.lobobrowser.html.parser.DocumentBuilderImpl;
 import org.lobobrowser.html.parser.InputSourceImpl;
 import org.lobobrowser.html.test.SimpleUserAgentContext;
@@ -22,6 +24,10 @@ import org.marvec.pisnickar.html.HtmlListener;
 import org.marvec.pisnickar.html.LocalHtmlRendererContext;
 import org.marvec.pisnickar.html.SearchPageFactory;
 import org.marvec.pisnickar.songs.SearchResult;
+import org.marvec.pisnickar.songs.Song;
+import org.marvec.pisnickar.songs.SongSource;
+import org.marvec.pisnickar.songs.SourceManager;
+import org.marvec.pisnickar.tabs.TabManipulator;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -31,33 +37,43 @@ import org.xml.sax.SAXException;
  */
 public class SearchPanel extends javax.swing.JPanel {
 
+    protected SourceManager sources;
+    protected List<SearchResult> results;
+    protected HtmlListener listener;
+    private TabManipulator manipulator;
     private String query = "";
 
     /** Creates new form SearchPanel */
-    public SearchPanel(HtmlListener listener, String query, List<SearchResult> results) {
+    public SearchPanel(SourceManager sources, TabManipulator manipulator, HtmlListener listener, String query, List<SearchResult> results) {
         this.query = query;
+        this.sources = sources;
+        this.results = results;
+        this.listener = listener;
+        this.manipulator = manipulator;
 
         initComponents();
-        initHtmlPanel(listener, results);
+        initHtmlPanel(htmlPanel1, listener, results);
     }
 
     protected Reader getResource(List<SearchResult> results) throws UnsupportedEncodingException {
         return new StringReader(SearchPageFactory.getSerachResultsAsHtml(query, results));
     }
 
-    private void initHtmlPanel(HtmlListener listener, List<SearchResult> results) {
-        try {
-            UserAgentContext ucontext = new SimpleUserAgentContext();
-            LocalHtmlRendererContext rcontext = new LocalHtmlRendererContext(htmlPanel1, ucontext);
-            rcontext.addHtmlListener(listener);
-            rcontext.setSupressOriginalHanlder(true);
-            DocumentBuilderImpl dbi = new DocumentBuilderImpl(ucontext, rcontext);
-            Document document = dbi.parse(new InputSourceImpl(getResource(results), GlobalHtmlListener.INTERNAL_URL_PREFIX));
-            htmlPanel1.setDocument(document, rcontext);
-        } catch (SAXException ex) {
-            Logger.getLogger(SongPanel.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(SongPanel.class.getName()).log(Level.SEVERE, null, ex);
+    protected void initHtmlPanel(HtmlPanel panel, HtmlListener listener, List<SearchResult> results) {
+        if (results != null) {
+            try {
+                UserAgentContext ucontext = new SimpleUserAgentContext();
+                LocalHtmlRendererContext rcontext = new LocalHtmlRendererContext(panel, ucontext);
+                rcontext.addHtmlListener(listener);
+                rcontext.setSupressOriginalHanlder(true);
+                DocumentBuilderImpl dbi = new DocumentBuilderImpl(ucontext, rcontext);
+                Document document = dbi.parse(new InputSourceImpl(getResource(results), GlobalHtmlListener.INTERNAL_URL_PREFIX));
+                panel.setDocument(document, rcontext);
+            } catch (SAXException ex) {
+                Logger.getLogger(SongPanel.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(SongPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
@@ -71,26 +87,73 @@ public class SearchPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         htmlPanel1 = new org.lobobrowser.html.gui.HtmlPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        addToSelectionButton = new javax.swing.JButton();
 
         setName("Form"); // NOI18N
 
         htmlPanel1.setName("htmlPanel1"); // NOI18N
 
+        jToolBar1.setRollover(true);
+        jToolBar1.setName("jToolBar1"); // NOI18N
+
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(org.marvec.pisnickar.PisnickarApp.class).getContext().getResourceMap(SearchPanel.class);
+        addToSelectionButton.setText(resourceMap.getString("addToSelectionButton.text")); // NOI18N
+        addToSelectionButton.setFocusable(false);
+        addToSelectionButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addToSelectionButton.setName("addToSelectionButton"); // NOI18N
+        addToSelectionButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addToSelectionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addToSelectionButtonActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(addToSelectionButton);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
             .addComponent(htmlPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(htmlPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(htmlPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void addToSelectionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToSelectionButtonActionPerformed
+        SongSource ss = sources.getDummySongSource();
+
+        boolean wasError = false;
+        for (SearchResult sr: results) {
+            if (sr.getSource() != ss) {
+                try {
+                    ss.storeSong(null, (Song) sr.getSource().getSong(sr.getSongId()).clone());
+                } catch (IOException ex) {
+                    Logger.getLogger(SongPanel.class.getName()).log(Level.WARNING, null, ex);
+                    wasError = true;
+                }
+            }
+        }
+
+        manipulator.refreshSelection();
+
+        if (wasError) {
+            JOptionPane.showMessageDialog(this, "Do výběru se nepodařilo vložit všechny písničky.",
+                    "Chyba při vkládání do výběru", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_addToSelectionButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addToSelectionButton;
     private org.lobobrowser.html.gui.HtmlPanel htmlPanel1;
+    private javax.swing.JToolBar jToolBar1;
     // End of variables declaration//GEN-END:variables
 
 }

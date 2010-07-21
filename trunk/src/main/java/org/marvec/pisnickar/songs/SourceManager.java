@@ -64,6 +64,32 @@ public class SourceManager implements Serializable {
         }
     }
 
+    public void makeSureDummyExists() {
+       for (SongSource s: sources) {
+           if (s instanceof DummySongSource) {
+               return;
+           }
+       }
+
+        SongSource source = new DummySongSource();
+        try {
+            source.open("Výběr", "Dočasná databáze pro uložení výběru písniček (v paměti)");
+        } catch (IOException e) {
+            // this can never happen for dummy source
+        }
+        addSource(source);
+    }
+
+    public SongSource getDummySongSource() {
+       for (SongSource s: sources) {
+           if (s instanceof DummySongSource) {
+               return s;
+           }
+       }
+
+       return null;
+    }
+
     public SongSource getSourceById(String id) {
         for (SongSource s: sources) {
             if (s.getId().equals(id)) {
@@ -74,9 +100,13 @@ public class SourceManager implements Serializable {
         return null;
     }
 
-    public void removeSource(SongSource src) throws IOException {
-        src.close();
-        sources.remove(src);
+    public void removeSource(SongSource src) throws IOException, CannotRemoveException {
+        if (!(src instanceof DummySongSource)) {
+            src.close();
+            sources.remove(src);
+        } else {
+            throw new CannotRemoveException();
+        }
     }
 
     public LinkedList<SearchResult> search(String queue) {

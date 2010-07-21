@@ -19,10 +19,11 @@ import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.Task;
 import org.marvec.pisnickar.html.GlobalHtmlListener;
 import org.marvec.pisnickar.html.HtmlListener;
 import org.marvec.pisnickar.songs.DummySongSource;
-import org.marvec.pisnickar.songs.SongSource;
 import org.marvec.pisnickar.songs.SourceManager;
 import org.marvec.pisnickar.tabs.TabManipulator;
 
@@ -34,6 +35,7 @@ public class PisnickarView extends FrameView {
     TabManipulator tabManipulator;
     HtmlListener htmlListener;
     SourceManager manager;
+    RegisterUtil register;
 
     public PisnickarView(SingleFrameApplication app) {
         super(app);
@@ -41,6 +43,8 @@ public class PisnickarView extends FrameView {
         Logger.getLogger("org.lobobrowser").setLevel(Level.WARNING);
 
         initComponents();
+
+        register = new RegisterUtil(getApplication().getContext().getLocalStorage());
 
         try {
             manager = SourceManager.load(getApplication().getContext().getLocalStorage().getDirectory());
@@ -50,18 +54,19 @@ public class PisnickarView extends FrameView {
 
         if (manager == null) {
             manager = new SourceManager();
-            try {
-                SongSource source = new DummySongSource();
-                source.open("TMP", "Dočasná databáze písniček (v paměti)");
-                manager.addSource(source);
-            } catch (IOException ex) {
-                Logger.getLogger(PisnickarView.class.getName()).log(Level.WARNING, "Cannot create dummy song source", ex);
-            }
         }
 
-        tabManipulator = new TabManipulator(getFrame(), jTabbedPane1, manager);
+        manager.makeSureDummyExists();
+
+        tabManipulator = new TabManipulator(getFrame(), jTabbedPane1, manager, register);
         htmlListener = new GlobalHtmlListener(tabManipulator);
         tabManipulator.openUrl(TabManipulator.WELCOME_URL);
+
+        if (!register.isRegistered()) {
+            tabManipulator.openUrl(TabManipulator.REGISTER_URL);
+        } else {
+            register.login();
+        }
 
         // status bar initialization - message timeout, idle icon and busy animation, etc
         ResourceMap resourceMap = getResourceMap();
@@ -147,17 +152,21 @@ public class PisnickarView extends FrameView {
         printMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JSeparator();
         sourcesMenuItem = new javax.swing.JMenuItem();
-        transferMenuItem = new javax.swing.JMenuItem();
-        jSeparator4 = new javax.swing.JPopupMenu.Separator();
         setupMenuItem = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JSeparator();
         javax.swing.JMenuItem exitMenuItem = new javax.swing.JMenuItem();
+        selectionMenu = new javax.swing.JMenu();
+        showSelectionMenuItem = new javax.swing.JMenuItem();
+        saveSelectionMenuItem = new javax.swing.JMenuItem();
+        jSeparator5 = new javax.swing.JPopupMenu.Separator();
+        clearSelectionMenuItem = new javax.swing.JMenuItem();
         tabMenu = new javax.swing.JMenu();
         prevTabMenuItem = new javax.swing.JMenuItem();
         nextTabMenuItem = new javax.swing.JMenuItem();
         closeTabMenuItem = new javax.swing.JMenuItem();
         javax.swing.JMenu helpMenu = new javax.swing.JMenu();
         welcomeMenuItem = new javax.swing.JMenuItem();
+        registerMenuItem = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JSeparator();
         javax.swing.JMenuItem aboutMenuItem = new javax.swing.JMenuItem();
         statusPanel = new javax.swing.JPanel();
@@ -233,6 +242,7 @@ public class PisnickarView extends FrameView {
         printMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         printMenuItem.setMnemonic('t');
         printMenuItem.setText(resourceMap.getString("printMenuItem.text")); // NOI18N
+        printMenuItem.setEnabled(false);
         printMenuItem.setName("printMenuItem"); // NOI18N
         fileMenu.add(printMenuItem);
 
@@ -249,14 +259,6 @@ public class PisnickarView extends FrameView {
         });
         fileMenu.add(sourcesMenuItem);
 
-        transferMenuItem.setMnemonic('p');
-        transferMenuItem.setText(resourceMap.getString("transferMenuItem.text")); // NOI18N
-        transferMenuItem.setName("transferMenuItem"); // NOI18N
-        fileMenu.add(transferMenuItem);
-
-        jSeparator4.setName("jSeparator4"); // NOI18N
-        fileMenu.add(jSeparator4);
-
         setupMenuItem.setMnemonic('t');
         setupMenuItem.setText(resourceMap.getString("setupMenuItem.text")); // NOI18N
         setupMenuItem.setName("setupMenuItem"); // NOI18N
@@ -267,13 +269,43 @@ public class PisnickarView extends FrameView {
 
         javax.swing.ActionMap actionMap = org.jdesktop.application.Application.getInstance(org.marvec.pisnickar.PisnickarApp.class).getContext().getActionMap(PisnickarView.class, this);
         exitMenuItem.setAction(actionMap.get("quit")); // NOI18N
-        exitMenuItem.setMnemonic('k');
         exitMenuItem.setText(resourceMap.getString("exitMenuItem.text")); // NOI18N
         exitMenuItem.setToolTipText(resourceMap.getString("exitMenuItem.toolTipText")); // NOI18N
         exitMenuItem.setName("exitMenuItem"); // NOI18N
         fileMenu.add(exitMenuItem);
 
         menuBar.add(fileMenu);
+
+        selectionMenu.setText(resourceMap.getString("selectionMenu.text")); // NOI18N
+        selectionMenu.setName("selectionMenu"); // NOI18N
+
+        showSelectionMenuItem.setText(resourceMap.getString("showSelectionMenuItem.text")); // NOI18N
+        showSelectionMenuItem.setName("showSelectionMenuItem"); // NOI18N
+        showSelectionMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showSelectionMenuItemActionPerformed(evt);
+            }
+        });
+        selectionMenu.add(showSelectionMenuItem);
+
+        saveSelectionMenuItem.setText(resourceMap.getString("saveSelectionMenuItem.text")); // NOI18N
+        saveSelectionMenuItem.setEnabled(false);
+        saveSelectionMenuItem.setName("saveSelectionMenuItem"); // NOI18N
+        selectionMenu.add(saveSelectionMenuItem);
+
+        jSeparator5.setName("jSeparator5"); // NOI18N
+        selectionMenu.add(jSeparator5);
+
+        clearSelectionMenuItem.setText(resourceMap.getString("clearSelectionMenuItem.text")); // NOI18N
+        clearSelectionMenuItem.setName("clearSelectionMenuItem"); // NOI18N
+        clearSelectionMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearSelectionMenuItemActionPerformed(evt);
+            }
+        });
+        selectionMenu.add(clearSelectionMenuItem);
+
+        menuBar.add(selectionMenu);
 
         tabMenu.setText(resourceMap.getString("tabMenu.text")); // NOI18N
         tabMenu.setName("tabMenu"); // NOI18N
@@ -322,6 +354,15 @@ public class PisnickarView extends FrameView {
             }
         });
         helpMenu.add(welcomeMenuItem);
+
+        registerMenuItem.setText(resourceMap.getString("registerMenuItem.text")); // NOI18N
+        registerMenuItem.setName("registerMenuItem"); // NOI18N
+        registerMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                registerMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(registerMenuItem);
 
         jSeparator3.setName("jSeparator3"); // NOI18N
         helpMenu.add(jSeparator3);
@@ -374,14 +415,30 @@ public class PisnickarView extends FrameView {
         setStatusBar(statusPanel);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
-        try {
-            //getApplication().getContext().getTaskService().execute(task);
-            manager.saveChanges();
-        } catch (IOException ex) {
-            Logger.getLogger(PisnickarView.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(getFrame(), "Nepodařilo se uložit změny.", "Chyba při ukládání", JOptionPane.ERROR_MESSAGE);
+    private static class SaveTask extends Task {
+        private SourceManager manager;
+
+        public SaveTask(Application app, SourceManager manager) {
+            super(app);
+            this.manager = manager;
+            setTitle("Ukládání dat");
+            setDescription("Ukládání písniček do příslušných zdrojů.");
+            setUserCanCancel(false);
         }
+
+        @Override
+        protected Object doInBackground() throws Exception {
+            setProgress(0.0f);
+            manager.saveChanges();
+            Thread.sleep(5000);
+            setProgress(1.0f);
+            return null;
+        }
+
+    }
+
+    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuItemActionPerformed
+        getApplication().getContext().getTaskService().execute(new SaveTask(getApplication(), manager));
     }//GEN-LAST:event_saveMenuItemActionPerformed
 
     private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
@@ -391,7 +448,7 @@ public class PisnickarView extends FrameView {
     }//GEN-LAST:event_newMenuItemActionPerformed
 
     private void searchMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchMenuItemActionPerformed
-        String query = (String) JOptionPane.showInputDialog(getFrame(), "Zadejte hledaný výraz:\n(používejte regulární výrazy, např. . pro libovolný znak, .* pro libovolný počet znaků)", "Hledání", JOptionPane.QUESTION_MESSAGE);
+        String query = (String) JOptionPane.showInputDialog(getFrame(), "Zadejte hledaný výraz:\n(můžete použít * pro libovolný počet znaků)", "Hledání", JOptionPane.QUESTION_MESSAGE);
         if (query != null && !"".equals(query)) {
             try {
                 tabManipulator.openUrl(TabManipulator.SEARCH_URL + query);
@@ -435,12 +492,29 @@ public class PisnickarView extends FrameView {
         tabManipulator.openUrl(TabManipulator.SOURCES_URL);
     }//GEN-LAST:event_sourcesMenuItemActionPerformed
 
+    private void registerMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerMenuItemActionPerformed
+        tabManipulator.openUrl(TabManipulator.REGISTER_URL);
+    }//GEN-LAST:event_registerMenuItemActionPerformed
+
+    private void showSelectionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showSelectionMenuItemActionPerformed
+        tabManipulator.openUrl(TabManipulator.SELECTION_URL);
+    }//GEN-LAST:event_showSelectionMenuItemActionPerformed
+
+    private void clearSelectionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSelectionMenuItemActionPerformed
+        int result = JOptionPane.showConfirmDialog(getFrame(), "Skutečně chcete vyčistit výběr a změny v něm?",
+                "Vyčištění výběru", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            ((DummySongSource) manager.getDummySongSource()).clear();
+        }
+    }//GEN-LAST:event_clearSelectionMenuItemActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem clearSelectionMenuItem;
     private javax.swing.JMenuItem closeTabMenuItem;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
-    private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JPopupMenu.Separator jSeparator5;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JMenuBar menuBar;
@@ -449,15 +523,18 @@ public class PisnickarView extends FrameView {
     private javax.swing.JMenuItem prevTabMenuItem;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JProgressBar progressBar;
+    private javax.swing.JMenuItem registerMenuItem;
     private javax.swing.JMenuItem saveMenuItem;
+    private javax.swing.JMenuItem saveSelectionMenuItem;
     private javax.swing.JMenuItem searchMenuItem;
+    private javax.swing.JMenu selectionMenu;
     private javax.swing.JMenuItem setupMenuItem;
+    private javax.swing.JMenuItem showSelectionMenuItem;
     private javax.swing.JMenuItem sourcesMenuItem;
     private javax.swing.JLabel statusAnimationLabel;
     private javax.swing.JLabel statusMessageLabel;
     private javax.swing.JPanel statusPanel;
     private javax.swing.JMenu tabMenu;
-    private javax.swing.JMenuItem transferMenuItem;
     private javax.swing.JMenuItem welcomeMenuItem;
     // End of variables declaration//GEN-END:variables
     private final Timer messageTimer;

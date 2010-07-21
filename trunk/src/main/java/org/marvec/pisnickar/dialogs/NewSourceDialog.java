@@ -47,6 +47,9 @@ public class NewSourceDialog extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         fileTextField = new javax.swing.JTextField();
         selectFileButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        serverDefaultRadioButton = new javax.swing.JRadioButton();
 
         setName("Form"); // NOI18N
 
@@ -112,6 +115,40 @@ public class NewSourceDialog extends javax.swing.JDialog {
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel1.TabConstraints.tabTitle"), jPanel1); // NOI18N
+
+        jPanel2.setName("jPanel2"); // NOI18N
+
+        jLabel2.setText(resourceMap.getString("jLabel2.text")); // NOI18N
+        jLabel2.setName("jLabel2"); // NOI18N
+
+        serverDefaultRadioButton.setSelected(true);
+        serverDefaultRadioButton.setText(resourceMap.getString("serverDefaultRadioButton.text")); // NOI18N
+        serverDefaultRadioButton.setName("serverDefaultRadioButton"); // NOI18N
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(serverDefaultRadioButton))
+                    .addComponent(jLabel2))
+                .addContainerGap(189, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(serverDefaultRadioButton)
+                .addContainerGap(178, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab(resourceMap.getString("jPanel2.TabConstraints.tabTitle"), jPanel2); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -183,9 +220,12 @@ public class NewSourceDialog extends javax.swing.JDialog {
     private javax.swing.JButton createButton;
     private javax.swing.JTextField fileTextField;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton selectFileButton;
+    private javax.swing.JRadioButton serverDefaultRadioButton;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -147,6 +147,7 @@ public class FileSongSource implements SongSource, Serializable {
 
     public List<SearchResult> search(String query) {
         LinkedList<SearchResult> result = new LinkedList<SearchResult>();
+        query = query.replaceAll("\\*", ".*");
 
         for (Entry<String, Song> e: songs.entrySet()) {
             Song s = e.getValue();
@@ -189,5 +190,11 @@ public class FileSongSource implements SongSource, Serializable {
         if (this instanceof DummySongSource) {
             songs = (HashMap<String, Song>) in.readObject();
         }
+    }
+
+    public void clear() {
+        songs = new LinkedHashMap<String, Song>();
+        dirty = true;
+        determineLastId();
     }
 }
