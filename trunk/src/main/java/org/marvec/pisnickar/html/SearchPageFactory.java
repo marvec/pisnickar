@@ -1,5 +1,6 @@
 package org.marvec.pisnickar.html;
 
+import com.lowagie.text.html.HtmlEncoder;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -35,8 +36,10 @@ public class SearchPageFactory {
             try {
                 Song s = r.getSource().getSong(r.getSongId());
                 String title = s.getTitle();
-                sb.append("<li>" + s.getAuthorText() + ": <a href=\"" + TabManipulator.formatSongUrl(sid, r.getSongId()) + "\">");
-                sb.append(title + "</a> (" + s.getTagsString() + ")</li>");
+                sb.append("<li>" + HtmlEncoder.encode(s.getAuthorText()) +
+                        ": <a href=\"" + TabManipulator.formatSongUrl(sid, r.getSongId()) + "\">");
+                sb.append(HtmlEncoder.encode(title) + "</a> (" +
+                        HtmlEncoder.encode(s.getTagsString()) + ")</li>");
             } catch (IOException ex) {
                 Logger.getLogger(ResourceProvider.class.getName()).log(Level.SEVERE, "Cannot read song title, song id=" +
                         r.getSongId() + ", source id=" + r.getSource().getId(), ex);

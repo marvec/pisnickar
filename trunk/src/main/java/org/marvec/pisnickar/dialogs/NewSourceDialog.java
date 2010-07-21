@@ -22,6 +22,7 @@ import javax.swing.filechooser.FileFilter;
 public class NewSourceDialog extends javax.swing.JDialog {
     final public static int CANCELED = -1;
     final public static int APPROVED_FILE = 1;
+    final public static int APPROVED_INTERNET = 2;
 
     private int result = 0;
 
@@ -50,6 +51,8 @@ public class NewSourceDialog extends javax.swing.JDialog {
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         serverDefaultRadioButton = new javax.swing.JRadioButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setName("Form"); // NOI18N
 
@@ -125,6 +128,19 @@ public class NewSourceDialog extends javax.swing.JDialog {
         serverDefaultRadioButton.setText(resourceMap.getString("serverDefaultRadioButton.text")); // NOI18N
         serverDefaultRadioButton.setName("serverDefaultRadioButton"); // NOI18N
 
+        jScrollPane1.setBorder(null);
+        jScrollPane1.setName("jScrollPane1"); // NOI18N
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setEditable(false);
+        jTextArea1.setLineWrap(true);
+        jTextArea1.setRows(5);
+        jTextArea1.setText(resourceMap.getString("jTextArea1.text")); // NOI18N
+        jTextArea1.setWrapStyleWord(true);
+        jTextArea1.setBorder(null);
+        jTextArea1.setName("jTextArea1"); // NOI18N
+        jScrollPane1.setViewportView(jTextArea1);
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -132,11 +148,12 @@ public class NewSourceDialog extends javax.swing.JDialog {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(serverDefaultRadioButton))
                     .addComponent(jLabel2))
-                .addContainerGap(189, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -145,7 +162,9 @@ public class NewSourceDialog extends javax.swing.JDialog {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(serverDefaultRadioButton)
-                .addContainerGap(178, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel2.TabConstraints.tabTitle"), jPanel2); // NOI18N
@@ -203,7 +222,7 @@ public class NewSourceDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
-        result = APPROVED_FILE;
+        result = jTabbedPane1.getSelectedIndex() == 0 ? APPROVED_FILE : APPROVED_INTERNET;
         setVisible(false);
     }//GEN-LAST:event_createButtonActionPerformed
 
@@ -223,7 +242,9 @@ public class NewSourceDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JButton selectFileButton;
     private javax.swing.JRadioButton serverDefaultRadioButton;
     // End of variables declaration//GEN-END:variables

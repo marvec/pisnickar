@@ -15,6 +15,7 @@ import org.jdesktop.application.Application;
 import org.marvec.pisnickar.dialogs.NewSourceDialog;
 import org.marvec.pisnickar.songs.CannotRemoveException;
 import org.marvec.pisnickar.songs.FileSongSource;
+import org.marvec.pisnickar.songs.InternetSongSource;
 import org.marvec.pisnickar.songs.SongSource;
 import org.marvec.pisnickar.songs.SourceManager;
 import org.marvec.pisnickar.tabs.TabManipulator;
@@ -211,6 +212,17 @@ public class SourcesPanel extends javax.swing.JPanel {
                 Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "File source " +
                         dlg.getSelectedFile() + " cannot be used.", ex);
                 JOptionPane.showMessageDialog(this, "Nepodařilo se otevřít ani vytvořit souborový zdroj.",
+                        "Chybný zdroj", JOptionPane.ERROR_MESSAGE);
+            }
+        } else if (dlg.getResult() == NewSourceDialog.APPROVED_INTERNET) {
+            try {
+                SongSource s = new InternetSongSource();
+                s.open(null, "http://www.marvec.org/songs/");
+                source.addSource(s);
+            } catch (IOException ex) {
+                Logger.getLogger(SourcesPanel.class.getName()).log(Level.SEVERE, "Internet source " +
+                        dlg.getSelectedFile() + " cannot be used.", ex);
+                JOptionPane.showMessageDialog(this, "Nepodařilo se vytvořit internetový zdroj.",
                         "Chybný zdroj", JOptionPane.ERROR_MESSAGE);
             }
         } else if (dlg.getResult() != NewSourceDialog.CANCELED) {
