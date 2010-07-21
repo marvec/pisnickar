@@ -82,7 +82,7 @@ public class SongPanel extends javax.swing.JPanel {
     }
 
     protected Reader getResource() throws UnsupportedEncodingException {
-        return new StringReader(song.toHtml(source.getId(), songId));
+        return new StringReader(song.toHtml(source.getId(), songId, source.isReadOnly()));
     }
 
     private void initHtmlPanel() {

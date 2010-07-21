@@ -1,5 +1,6 @@
 package org.marvec.pisnickar.songs;
 
+import com.lowagie.text.html.HtmlEncoder;
 import java.io.Serializable;
 import java.util.Arrays;
 import org.marvec.pisnickar.chords.Transposer;
@@ -117,13 +118,25 @@ public class Song implements Serializable {
     }
 
     public String toHtml(String sourceId, String songId) {
+        return toHtml(sourceId, songId, false);
+    }
+
+    private String encode(String s) {
+        return HtmlEncoder.encode(s);
+    }
+
+    public String toHtml(String sourceId, String songId, boolean readOnly) {
         String template = ResourceProvider.insertCss(ResourceProvider.loadResourceAsString(HTML_SONG_TEMPLATE));
-        template = template.replaceFirst(HTML_TITLE_MARKER, title);
-        template = template.replaceFirst(HTML_MUSIC_MARKER, getAuthorMusic());
-        template = template.replaceFirst(HTML_TEXT_MARKER, getAuthorText());
-        template = template.replaceFirst(HTML_TAGS_MARKER, getTagsString());
-        template = template.replaceFirst(HTML_EDIT_MARKER, TabManipulator.formatEditUrl(sourceId, songId));
-        String transposedText = Transposer.transpose(text, transpose);
+        template = template.replaceFirst(HTML_TITLE_MARKER, encode(title));
+        template = template.replaceFirst(HTML_MUSIC_MARKER, encode(getAuthorMusic()));
+        template = template.replaceFirst(HTML_TEXT_MARKER, encode(getAuthorText()));
+        template = template.replaceFirst(HTML_TAGS_MARKER, encode(getTagsString()));
+        if (readOnly) {
+            template = template.replaceFirst(HTML_EDIT_MARKER, "");
+        } else {
+            template = template.replaceFirst(HTML_EDIT_MARKER, TabManipulator.formatEditUrl(sourceId, songId));
+        }
+        String transposedText = Transposer.transpose(encode(text), transpose);
         transposedText = transposedText.replaceAll("\\n", "<br />");
         String chordMarksReplaced = transposedText.replaceAll("\\{", HTML_CHORD_OPEN).replaceAll("\\}", HTML_CHORD_CLOSE);
         return template.replaceFirst(HTML_SONG_MARKER, chordMarksReplaced);
