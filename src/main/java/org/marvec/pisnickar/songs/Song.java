@@ -100,8 +100,20 @@ public class Song implements Serializable {
         this.transpose = transpose;
     }
 
-    public String getTextWithoutChords() { // FIX ME!!!!!!!!!!!!!!!!!!!
-        return text;
+    public String getTextWithoutChords() {
+        return text.replaceAll("\\{[^ ]\\}", "");
+    }
+
+    @Override
+    public Object clone() {
+        Song s = new Song();
+        s.authorMusic = this.authorMusic;
+        s.authorText = this.authorText;
+        s.tags = this.tags.clone();
+        s.title = this.title;
+        s.text = this.text;
+
+        return s;
     }
 
     public String toHtml(String sourceId, String songId) {

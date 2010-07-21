@@ -1,14 +1,15 @@
 package org.marvec.pisnickar.tabs;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import org.marvec.pisnickar.RegisterUtil;
 import org.marvec.pisnickar.html.GlobalHtmlListener;
 import org.marvec.pisnickar.html.HtmlListener;
+import org.marvec.pisnickar.panels.RegisterPanel;
 import org.marvec.pisnickar.panels.SongPanel;
 import org.marvec.pisnickar.songs.Song;
 import org.marvec.pisnickar.songs.SongSource;
@@ -25,20 +26,26 @@ public class TabManipulator {
     TabFactory tabFactory;
     SourceManager manager;
     JFrame frame;
+    RegisterUtil register;
 
     private int newDocumentCounter = 1;
 
     public static final String WELCOME_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "welcome";
+    public static final String REGISTER_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "register";
+    public static final String SELECTION_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "selection";
     public static final String SONG_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "song/";
     public static final String EDIT_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "edit/";
     public static final String CHORD_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "chord/";
     public static final String SEARCH_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "search/";
     public static final String SOURCES_URL = GlobalHtmlListener.INTERNAL_URL_PREFIX + "sources/";
 
-    public TabManipulator(JFrame frame, JTabbedPane tabbedPane, SourceManager manager) {
+    private static final String SELECTION_TITLE = "Obsah výběru";
+
+    public TabManipulator(JFrame frame, JTabbedPane tabbedPane, SourceManager manager, RegisterUtil register) {
         this.frame = frame;
         this.tabbedPane = tabbedPane;
         this.manager = manager;
+        this.register = register;
     }
 
     static public String formatSongUrl(String sourceId, String songId) {
@@ -76,6 +83,12 @@ public class TabManipulator {
         return false;
     }
 
+    public void bringToFront(int index) {
+        if (index >= 0 && index < tabbedPane.getTabCount()) {
+            tabbedPane.getModel().setSelectedIndex(index);
+        }
+    }
+
     public void openUrl(String url) {
         if (tabFactory == null) {
             throw new IllegalStateException("Cannot open an URL because TabFactory has not been initialized yet.");
@@ -84,12 +97,16 @@ public class TabManipulator {
         } else {
             if (WELCOME_URL.equals(url)) {
                 addTab("Vítejte!", tabFactory.createWelcomeTab());
+            } else if (REGISTER_URL.equals(url)) {
+                addTab("Registrace", tabFactory.createRegisterTab(this, register));
             } else if (url.startsWith(SONG_URL)) {
                 openSongUrl(url);
             } else if (url.startsWith(EDIT_URL)) {
                 openEditUrl(url);
             } else if (url.startsWith(SEARCH_URL)) {
                 openSearchUrl(url);
+            } else if (SELECTION_URL.equals(url)) {
+                openSelectionUrl();
             } else if (url.startsWith(SOURCES_URL)) {
                 addTab("Zdroje", tabFactory.createSourcesTab(this, manager));
             } else {
@@ -102,6 +119,14 @@ public class TabManipulator {
         return frame;
     }
 
+    private void openSelectionUrl() {
+        addTab(SELECTION_TITLE, tabFactory.createSelectionTab(this, manager));
+    }
+
+    private String getSongTabTitle(SongSource source, Song song) {
+        return song.getTitle() + " (" + source.getId() + ")";
+    }
+
     private void openSongUrl(String url) {
         String[] params = url.substring(SONG_URL.length()).split("/", 2);
         try {
@@ -110,10 +135,10 @@ public class TabManipulator {
             if (song == null) {
                 throw new NullPointerException("Song id " + params[1] + " does not exists within source id " + params[0]);
             }
-            if (bringToFront(song.getTitle())) {
-                ((SongPanel) tabbedPane.getComponentAt(getIndexByTitle(song.getTitle()))).refresh(song);
+            if (bringToFront(getSongTabTitle(source, song))) {
+                ((SongPanel) tabbedPane.getComponentAt(getIndexByTitle(getSongTabTitle(source, song)))).refresh(song);
             } else {
-                addTab(song.getTitle(), tabFactory.createSongTab(source, params[1], song));
+                addTab(getSongTabTitle(source, song), tabFactory.createSongTab(this, manager, source, params[1], song));
             }
         } catch (Exception ex) {
             Logger.getLogger(TabManipulator.class.getName()).log(Level.SEVERE, "Cannot open song " + (params.length > 1 ? params[1] : null) + " panel.", ex);
@@ -128,7 +153,7 @@ public class TabManipulator {
             if (source != null) {
                 if (params.length > 1) {
                     Song song = source.getSong(params[1]);
-                    addTab("Upravit: " + song.getTitle(), tabFactory.createEditorTab(this, source, params[1], song));
+                    addTab("Upravit: " + getSongTabTitle(source, song), tabFactory.createEditorTab(this, source, params[1], song));
                 } else {
                     // must be unique name for manipulator not to highlight another empty editor
                     addTab("Upravit: Nová písnička " + newDocumentCounter++, tabFactory.createEditorTab(this, source, null, new Song()));
@@ -149,7 +174,7 @@ public class TabManipulator {
             closeCurrentTab();
         }
 
-        addTab(title, tabFactory.createSearchTab(param, manager.search(param)));
+        addTab(title, tabFactory.createSearchTab(this, manager, param, manager.search(param)));
     }
 
     public HtmlListener getListener() {
@@ -166,6 +191,9 @@ public class TabManipulator {
     }
 
     public void closeCurrentTab() {
+        if (tabbedPane.getSelectedComponent() instanceof RegisterPanel && !register.isRegistered()) {
+            return; // block closing the register form until registered
+        }
         if (tabbedPane.getSelectedIndex() >= 0) {
             tabbedPane.remove(tabbedPane.getSelectedIndex());
         }
@@ -194,5 +222,18 @@ public class TabManipulator {
 
     public void updateEditTitle(String songTitle) {
         setCurrentTitle("Upravit: " + songTitle);
+    }
+
+    public void refreshSelection() {
+        String originalSelection = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+        
+        int index = getIndexByTitle(SELECTION_TITLE);
+        if (index != -1) {
+            bringToFront(index);
+            closeCurrentTab();
+            openSelectionUrl();
+        }
+
+        bringToFront(originalSelection);
     }
 }

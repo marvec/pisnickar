@@ -2,9 +2,12 @@ package org.marvec.pisnickar.tabs;
 
 import java.util.List;
 import javax.swing.JPanel;
+import org.marvec.pisnickar.RegisterUtil;
 import org.marvec.pisnickar.html.HtmlListener;
 import org.marvec.pisnickar.panels.EditorPanel;
+import org.marvec.pisnickar.panels.RegisterPanel;
 import org.marvec.pisnickar.panels.SearchPanel;
+import org.marvec.pisnickar.panels.SelectionPanel;
 import org.marvec.pisnickar.panels.SongPanel;
 import org.marvec.pisnickar.panels.SourcesPanel;
 import org.marvec.pisnickar.panels.WelcomePanel;
@@ -34,19 +37,27 @@ public class TabFactory {
         return welcomePanel;
     }
 
-    public JPanel createSongTab(SongSource source, String songId, Song song) {
-        return new SongPanel(listener, source, songId, song);
+    public JPanel createSongTab(TabManipulator manipulator, SourceManager manager, SongSource source, String songId, Song song) {
+        return new SongPanel(listener, manipulator, manager, source, songId, song);
     }
 
     public JPanel createEditorTab(TabManipulator manipulator, SongSource source, String songId, Song song) {
         return new EditorPanel(manipulator, source, songId, song);
     }
 
-    public JPanel createSearchTab(String query, List<SearchResult> results) {
-        return new SearchPanel(listener, query, results);
+    public JPanel createSearchTab(TabManipulator manipulator, SourceManager manager, String query, List<SearchResult> results) {
+        return new SearchPanel(manager, manipulator, listener, query, results);
+    }
+
+    public JPanel createSelectionTab(TabManipulator manipulator, SourceManager manager) {
+        return new SelectionPanel(manipulator, manager, listener);
     }
 
     public JPanel createSourcesTab(TabManipulator manipulator, SourceManager manager) {
         return new SourcesPanel(manipulator, manager);
+    }
+
+    public JPanel createRegisterTab(TabManipulator manipulator, RegisterUtil register) {
+        return new RegisterPanel(manipulator, register);
     }
 }
