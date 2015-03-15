@@ -1,0 +1,1 @@
+It is a Java based GUI application that can maintain various sources of song texts enriched with guitar chords. It offers easy-to-use editor, search for texts, file based as well as on-line sources, printing to PDF and more.
